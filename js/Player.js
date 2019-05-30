@@ -62,3 +62,107 @@ Player class definition. Player is a Creature
 Example use:
 new Player('Van', new Position(5, 5), new Board(10, 10), 1, [new Potion(0)]);
 */
+class Player extends Creature {
+    constructor(name, position, board, level, items, gold) {
+        let img = 'imgs/player/front.png';
+        super(name, img, level, items, gold);
+        this.position = position;
+        this.board = board;
+    }
+    render(root) {
+        this.element.style.position = 'absolute';
+        this.update();
+        root.appendChild(this.element);
+    }
+    update() {
+        this.element.style.top = (this.position.row * ENTITY_SIZE) + 'px';
+        this.element.style.left = (this.position.column * ENTITY_SIZE) + 'px';
+    }
+    moveToPosition(position) {
+        if (!(this.board.getEntity(position) instanceof Wall)) {
+            this.position = position;
+            this.update();
+        }
+    }
+    move(direction) {
+        switch (direction) {
+            case 'U': 
+                this.setImg('imgs/player/back.png');
+                this.moveToPosition(new Position(this.position.row - 1, this.position.column));
+                break;
+            case 'R': 
+                this.setImg('imgs/player/right.png');
+                this.moveToPosition(new Position(this.position.row, this.position.column + 1));
+                break;   
+            case 'D': 
+                this.setImg('imgs/player/front.png');
+                this.moveToPosition(new Position(this.position.row + 1, this.position.column));
+                break; 
+            case 'L': 
+                this.setImg('imgs/player/left.png');
+                this.moveToPosition(new Position(this.position.row, this.position.column - 1));
+                break;
+        }
+    }
+    pickup(entity) {
+        if (entity instanceof Item) {
+            this.items.push(entity);
+            playSound('loot');
+        }
+        if (entity instanceof Gold) {
+            this.gold += entity.value;
+            playSound('gold');
+        }
+    }
+    attack(entity) {
+        if (super.attack(entity)) {
+            playSound('pattack');
+        }
+    }
+    buy(item, tradesman) {
+        if (this.gold < item.value) {
+            return false;
+        }
+        this.gold -= item.value;
+        remove(tradesman.items, item);
+        this.items.push(item);
+        playSound('trade');
+        return true; 
+    }
+    sell(item, tradesman) {
+        this.gold += item.value;
+        remove(this.items, item);
+        tradesman.items.push(item);
+        playSound('trade');
+        return true;
+    }
+    useItem(item, target) {
+        item.use(target);
+        remove(this.items, item);
+    }
+    loot(entity) {
+        this.gold += entity.gold;
+        entity.gold = 0;
+        for (let i = 0; i < entity.items.length; i++) {
+            this.items.push(entity.items[i])
+        }
+        entity.items = [];
+        playSound('loot');
+    }
+    getExpToLevel() {
+        return this.level * 10;
+    }
+    getExp(entity) {
+        this.exp += entity.level * 10;
+        while (this.exp >= this.getExpToLevel()) {
+            this.levelUp();
+        }
+    }
+    levelUp() {
+        this.level++;
+        this.hp = this.getMaxHp();
+        this.strength = this.level * 10;
+        this.attackSpeed = 3000 / this.level;
+        playSound('levelup');
+    }
+}

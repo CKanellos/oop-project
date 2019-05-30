@@ -12,6 +12,16 @@ Item class definition. Item is an Entity
 - sound (Audio object - type is used for the sound file path)
 Example use: not used by itself. 
 */
+class Item extends Entity {
+    constructor(value, rarity, type) {
+        super('imgs/items/' + type + '.png');
+        this.name = ITEM_RARITIES[rarity] + ' ' + type;
+        this.value = value;
+        this.rarity = rarity;
+        this.type = type;
+        this.sound = new Audio('sounds/' + type + '.wav');
+    }
+}
 
 /*
 Potion class definition. Potion is an Item
@@ -26,6 +36,21 @@ Potion class definition. Potion is an Item
 Example use:
 new Potion(0) // potion rarity 0
 */
+class Potion extends Item {
+    constructor(rarity) {
+        let value = (rarity + 1) * 10;
+        super(value, rarity, 'potion');
+        this.potency = (rarity + 1) * 10;
+    } 
+    use(target) {
+        target.hp += this.potency;
+        if (target.hp > target.getMaxHp()) {
+            target.hp = target.getMaxHp();
+        }
+        this.sound.currentTime = 0;
+        this.sound.play();
+    }
+}
 
 /*
 Bomb class definition. Bomb is an Item
@@ -40,6 +65,21 @@ Bomb class definition. Bomb is an Item
 Example use:
 new Bomb(0) // bomb rarity 0
 */
+class Bomb extends Item {
+    constructor(rarity) {
+        let value = (rarity + 1) * 20;
+        super(value, rarity, 'bomb');
+        this.damage = (rarity + 1) * 30;
+    }
+    use(target) {
+        target.hp -= this.damage;
+        if (target.hp < 0) {
+            target.hp = 0;
+        }
+        this.sound.currentTime = 0;
+        this.sound.play();
+    }
+}
 
 /*
 Key class definition. Key is an Item
@@ -52,3 +92,15 @@ Key class definition. Key is an Item
 Example use:
 new Key(0) // bomb rarity 0
 */
+class Key extends Item {
+    constructor() {
+        super(100, 3, 'key');
+    }
+    use(target) {
+        target.open();
+        if (!target.hasPrincess) {
+            this.sound.currentTime = 0;
+            this.sound.play(); 
+        }
+    }
+}

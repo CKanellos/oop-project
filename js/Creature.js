@@ -21,12 +21,45 @@ The Creature class is an Entity. It has the following properties (not including 
 - attack (function)
   - parameters: entity (Creature)
   - hits the entity with strength value
-  - sets an attack timeout that expires after attackSpeed. While the timeout is active, this method immediately returns false, else returns true.
+  - sets an attack timeout that expires after attackSpeed. While the timeout is active, this method 
+    immediately returns false, else returns true.
 Example use: not used by itself. 
 */
+class Creature extends Entity {
+    constructor(name, img, level, items, gold) {
+        super(img);
+        this.name = name;
+        this.img = img;
+        this.level = level;
+        this.items = items;
+        this.gold = gold;
+        this.hp = level * 100; 
+        this.strength = level * 10;
+        this.attackSpeed = 3000 / level;
+    }    
+    getMaxHp() {
+        return this.level * 100;
+    }
+    hit(val) {         
+        this.hp -= val;
+        if (this.hp < 0) {
+            this.hp = 0;
+        }  
+    }
+    attack(entity) {
+        if (typeof this.attackTimeoutId !== 'undefined') {
+            return false;
+        }
+        entity.hit(this.strength);
+        this.attackTimeoutId = setTimeout(() => {
+            delete this.attackTimeoutId;
+        }, this.attackSpeed);
+        return true;
+    }
+}
 
 /*
-The Monster class is a Creature. It has the following properties (bot including inherited properties):
+The Monster class is a Creature. It has the following properties (not including inherited properties):
 - constructor
   - parameters: name (string), level (number), items (Item[]), gold (number)
 - name (string): name must be valid (from MONSTER_NAMES)
@@ -35,7 +68,20 @@ The Monster class is a Creature. It has the following properties (bot including 
 - gold (number)
 - attack (function)
   - parameters: entity (Creature)
-  - calls the attack method from Creature (use super) and plays the 'mattack' sound if the attack was successful
+  - calls the attack method from Creature (use super) and plays the 'mattack' sound if the attack was 
+    successful
 Example use:
-new Monster('Anti Fairy', 1, [], 0); // Creates a Monster named Anti Fairy, level 1, no items and 0 gold. Only the name is required.
+new Monster('Anti Fairy', 1, [], 0); // Creates a Monster named Anti Fairy, level 1, no items and 0 gold. 
+Only the name is required.
 */
+class Monster extends Creature {
+    constructor(name, level = 1, items = [], gold = 0) {
+        let img = 'imgs/monsters/' + name.replace(/ /g, '') + '.gif';
+        super(name, img, level, items, gold);
+    }
+    attack(entity) {
+        if (super.attack(entity)) {
+            playSound('mattack');
+        }
+    }
+}

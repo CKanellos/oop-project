@@ -9,6 +9,12 @@ Position class definition
 Example use:
 const position = new Position(0, 0); // row 0, column 0
 */
+class Position {
+    constructor(row, column) {
+        this.row = row;
+        this.column = column;
+    }
+}
 
 /*
 Board class definition
@@ -31,5 +37,53 @@ Board class definition
   - parameters: position (Position)
   - returns the Entity at the specified position
 Example use:
-const board = new Board(20, 20); // Creates a Board object with 20 rows, 20 columns, Wall entities (at the edges) and Grass entities.
+const board = new Board(20, 20); // Creates a Board object with 20 rows, 20 columns, 
+Wall entities (at the edges) and Grass entities.
 */
+class Board {
+    constructor(rows, columns) {
+        this.rows = [];
+        for (let i = 0; i < rows; i++) {
+            this.rows[i] = [];
+            for (let j = 0; j < columns; j++) {
+                if (i === 0 || j === 0 || i === rows - 1 || j === columns - 1) {
+                    this.rows[i][j] = new Wall();
+                }
+                else {
+                    this.rows[i][j] = new Grass();
+                }
+            }
+        }
+    }
+    render(root) {
+        this.root = root;
+        for (let i = 0; i < this.rows.length; i++) {
+            let rowElement = document.createElement('div');
+            rowElement.className = 'row';
+            for (let j = 0; j < this.rows[i].length; j++) {
+                let entity = this.rows[i][j];
+                rowElement.appendChild(entity.element); 
+            }
+            this.root.appendChild(rowElement);
+        }
+    }
+    update() {
+        for (let i = 0; i < this.rows.length; i++) {
+            let rowElement = this.root.querySelectorAll('.row')[i];
+            for (let j = 0; j < this.rows[i].length; j++) {
+                let imgElement = rowElement.querySelectorAll('img')[j];
+                let entity = this.rows[i][j];
+                if (imgElement !== entity.element) {
+                    rowElement.replaceChild(entity.element, imgElement);
+                }
+            }
+        }
+    }
+    setEntity(entity, position) {
+        this.rows[position.row][position.column] = entity;
+        this.update();
+    }
+    getEntity(position) {
+        return this.rows[position.row][position.column];
+    }
+}
